@@ -63,7 +63,9 @@ class TelegramNotification extends NotificationBase {
   constructor(config) {
     super(config, {
       name: "Telegram推送",
-      description: config.chatId ? `Chat ID: ${config.chatId}` : "Telegram机器人",
+      description: config.chatId
+        ? `Chat ID: ${config.chatId}`
+        : "Telegram机器人",
     });
     if (!config.botToken || !config.chatId) {
       throw new Error(`${this.info.name} 配置不完整：缺少 botToken 或 chatId`);
@@ -93,7 +95,9 @@ class TelegramNotification extends NotificationBase {
 
     const result = await response.json();
     if (!result.ok) {
-      throw new Error(`Telegram推送 发送失败：${result.description || "未知错误"}`);
+      throw new Error(
+        `Telegram推送 发送失败：${result.description || "未知错误"}`
+      );
     }
   }
 }

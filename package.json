@@ -10,7 +10,7 @@
     "build-generate-blob": "node --experimental-sea-config sea-config.json",
     "build-inject-win": "node -e \"require('fs').copyFileSync(process.execPath, 'dist/CRTM.exe')\" && npx postject dist/CRTM.exe NODE_SEA_BLOB dist/sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"
   },
-  "author": "BobLiu",
+  "author": "BobLiu&Wxory",
   "license": "GPL-2.0-only",
   "description": "12306 余票监控程序",
   "dependencies": {

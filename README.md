@@ -95,7 +95,7 @@ notifications:
   - # 飞书推送
     type: "Lark"
     webhook: "" # 飞书机器人 Webhook URL
-  
+
   - # Telegram推送
     type: "Telegram"
     botToken: "" # Telegram机器人Token
@@ -110,7 +110,7 @@ delay: 5
 
 ## 推送通知
 
-目前支持飞书推送和Telegram推送通知。
+目前支持飞书推送和 Telegram 推送通知。
 
 ### 飞书推送配置
 
@@ -123,18 +123,18 @@ notifications:
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
 ```
 
-### Telegram推送配置
+### Telegram 推送配置
 
-使用Telegram推送需要先创建一个Telegram机器人并获取相关信息：
+使用 Telegram 推送需要先创建一个 Telegram 机器人并获取相关信息：
 
-1. 在Telegram中找到 [@BotFather](https://t.me/BotFather) 并发送 `/newbot` 创建新机器人
-2. 按照提示设置机器人名称和用户名，获取机器人Token
+1. 在 Telegram 中找到 [@BotFather](https://t.me/BotFather) 并发送 `/newbot` 创建新机器人
+2. 按照提示设置机器人名称和用户名，获取机器人 Token
 3. 将机器人添加到您的聊天中，或直接与机器人私聊
-4. 获取Chat ID：
+4. 获取 Chat ID：
    - 发送消息给机器人后，访问 `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
-   - 在返回的JSON中找到 `chat.id` 字段
+   - 在返回的 JSON 中找到 `chat.id` 字段
 
-在 `config.yml` 中配置Telegram推送：
+在 `config.yml` 中配置 Telegram 推送：
 
 ```yaml
 notifications:
