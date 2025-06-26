@@ -19,9 +19,9 @@ watch:
 
 # 推送配置 - 支持多种推送方式
 notifications:
-  - # HTTP 推送（飞书、企业微信、钉钉等）
-    type: "HTTP"
-    url: "xxxx" # 推送地址，如飞书机器人 Webhook URL
+  - # 飞书推送
+    type: "Lark"
+    webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx" # 飞书机器人 Webhook URL
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15

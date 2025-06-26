@@ -92,9 +92,9 @@ watch:
 
 # 推送配置 - 支持多种推送方式（详见下文）
 notifications:
-  - # HTTP 推送（飞书、企业微信、钉钉等）
-    type: "HTTP"
-    url: "" # 推送地址
+  - # 飞书推送
+    type: "Lark"
+    webhook: "" # 飞书机器人 Webhook URL
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
@@ -105,17 +105,17 @@ delay: 5
 
 ## 推送通知
 
-目前支持通过 HTTP Webhook 推送通知，可以轻松集成到飞书、企业微信、钉钉等平台。
+目前支持飞书推送通知，通过飞书机器人的 Webhook 接口发送消息。
 
-### HTTP 推送配置
+### 飞书推送配置
 
-以飞书为例,获取飞书机器人的 webhook 地址可参考[飞书开发文档](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
+获取飞书机器人的 webhook 地址可参考[飞书开发文档](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
 在 `config.yml` 中填写飞书机器人的 Webhook 地址即可，例如：
 
 ```yaml
 notifications:
-  - type: "HTTP"
-    url: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
+  - type: "Lark"
+    webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
 ```
 
 这样，当有余票时，程序会通过飞书机器人发送通知。

@@ -34,13 +34,8 @@ function clean() {
 
 async function sendMsg(msg) {
   for (let notification of notifications) {
-    if (notification.info.name === "HTTP 推送") {
-      const formattedMsg = {
-        msg_type: "text",
-        content: {
-          text: `[车票监控]\n🕒 时间：${msg.time}\n📝 内容：${msg.content}`,
-        },
-      };
+    if (notification.info.name === "飞书推送") {
+      const formattedMsg = `[车票监控]\n🕒 时间：${msg.time}\n📝 内容：${msg.content}`;
       notification.send(formattedMsg).catch((err) => {
         log.error(
           `${notification.info.name} (${notification.info.description}) 发送失败：${err}`
