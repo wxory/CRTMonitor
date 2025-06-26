@@ -5,6 +5,6 @@
   "useSnapshot": false,
   "useCodeCache": true,
   "assets": {
-    "config.example.json": "config.example.json"
+    "config.example.yml": "config.example.yml"
   }
 }

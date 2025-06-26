@@ -1,4 +1,5 @@
 import fs from "fs";
+import yaml from "js-yaml";
 import ChinaRailway from "./cr.js";
 import { Notifications } from "./notifications.js";
 import { sleep, time, log, asset } from "./utils.js";
@@ -202,28 +203,28 @@ async function update() {
 
 function checkConfig() {
   try {
-    config = fs.readFileSync("config.json", "UTF-8");
+    config = fs.readFileSync("config.yml", "UTF-8");
   } catch (err) {
     if (err.code == "ENOENT") {
-      log.error("config.json 不存在");
+      log.error("config.yml 不存在");
       try {
-        fs.writeFileSync("config.json", asset("config.example.json"));
-        log.info("已自动创建 config.json");
+        fs.writeFileSync("config.yml", asset("config.example.yml"));
+        log.info("已自动创建 config.yml");
         log.info("请根据需要修改后重启程序");
       } catch (err) {
-        log.error("创建 config.json 失败");
+        log.error("创建 config.yml 失败");
         log.info("请自行创建后重启程序");
       }
     } else {
-      log.error("读取 config.json 时发生错误：", err);
+      log.error("读取 config.yml 时发生错误：", err);
     }
-    die();
+    die("配置文件错误");
   }
   try {
-    config = JSON.parse(config);
+    config = yaml.load(config);
   } catch (err) {
-    log.error("解析 config.json 时发生错误：", err);
-    die();
+    log.error("解析 config.yml 时发生错误：", err);
+    die("配置文件解析错误");
   }
 
   let configParsing = "当前配置文件：\n\n";

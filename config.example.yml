@@ -1,0 +1,30 @@
+# 🚄 China Railway Ticket Monitor 配置文件
+# 详细配置说明请参考 README.md
+
+# 查询列表 - 可添加多个查询条件
+watch:
+  - # 基础信息
+    from: "上海" # 起点站（包含同城站）
+    to: "北京" # 终点站（包含同城站）
+    date: "20241001" # 日期（YYYYMMDD 格式）
+
+    # 车次列表（可选）- 不填时默认为全部车次
+    trains:
+      - code: "G2" # 车次号
+        from: "上海" # 指定起点站（可选）
+        to: "北京南" # 指定终点站（可选）
+        seatCategory: # 限定席别（可选，详见 README.md）
+          - "二等座"
+        checkRoundTrip: false # 查询全程车票情况（可选）
+
+# 推送配置 - 支持多种推送方式
+notifications:
+  - # HTTP 推送（飞书、企业微信、钉钉等）
+    type: "HTTP"
+    url: "xxxx" # 推送地址，如飞书机器人 Webhook URL
+
+# 刷新间隔（分钟，可选，默认 15 分钟）
+interval: 15
+
+# 访问延迟（秒，可选，默认 5 秒）
+delay: 5

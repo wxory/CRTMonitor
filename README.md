@@ -18,11 +18,11 @@
 
 ### 配置
 
-首次运行程序会自动生成一份 config.json 模板文件。请根据 [参数配置](#配置-1) 说明修改该文件。
+首次运行程序会自动生成一份 config.yml 模板文件。请根据 [参数配置](#配置-1) 说明修改该文件。
 
 ### 运行
 
-将配置好的 config.json 文件放置于可执行程序的同一目录下，然后直接运行即可。
+将配置好的 config.yml 文件放置于可执行程序的同一目录下，然后直接运行即可。
 
 ## 手动部署
 
@@ -64,51 +64,43 @@ npm start
 
 ## 配置
 
-程序启动时会查找同目录下的 config.json 文件。如果文件不存在，将自动创建一个模板。
+程序启动时会查找同目录下的 config.yml 文件。如果文件不存在，将自动创建一个模板。
 
-以下是一个完整的配置示例。请注意，JSON 标准格式不支持注释，请在你的配置文件中移除所有注释。
+以下是一个完整的配置示例：
 
-config.json 示例:
+config.yml 示例:
 
-```json
-{
-  // 查询列表
-  "watch": [
-    // 可添加多个查询
-    {
-      // 基础信息
-      "from": "上海", // 起点站（包含同城站）
-      "to": "北京", // 终点站（包含同城站）
-      "date": "20241001", // 日期（YYYYMMDD）
+```yaml
+# 🚄 China Railway Ticket Monitor 配置文件
+# 详细配置说明请参考 README.md
 
-      // 车次列表（选填），不填时默认为全部车次
-      "trains": [
-        {
-          "code": "G2", // 车次号
-          "from": "上海", // 指定起点站（选填）
-          "to": "北京南", // 指定终点站（选填）
-          "seatCategory": ["二等座"], // 限定席别（选填，详见下文）
-          "checkRoundTrip": true // 查询全程车票情况（选填）
-        }
-      ]
-    }
-  ],
+# 查询列表 - 可添加多个查询条件
+watch:
+  - # 基础信息
+    from: "上海" # 起点站（包含同城站）
+    to: "北京" # 终点站（包含同城站）
+    date: "20241001" # 日期（YYYYMMDD 格式）
 
-  // 推送配置（详见下文）
-  "notifications": [
-    {
-      // HTTP 推送
-      "type": "HTTP",
-      // 推送地址
-      "url": ""
-    }
-  ],
+    # 车次列表（可选）- 不填时默认为全部车次
+    trains:
+      - code: "G2" # 车次号
+        from: "上海" # 指定起点站（可选）
+        to: "北京南" # 指定终点站（可选）
+        seatCategory: # 限定席别（可选，详见下文）
+          - "二等座"
+        checkRoundTrip: true # 查询全程车票情况（可选）
 
-  // 刷新间隔（分钟，选填）
-  "interval": 15,
-  // 访问延迟（秒，选填）
-  "delay": 5
-}
+# 推送配置 - 支持多种推送方式（详见下文）
+notifications:
+  - # HTTP 推送（飞书、企业微信、钉钉等）
+    type: "HTTP"
+    url: "" # 推送地址
+
+# 刷新间隔（分钟，可选，默认 15 分钟）
+interval: 15
+
+# 访问延迟（秒，可选，默认 5 秒）
+delay: 5
 ```
 
 ## 推送通知
@@ -118,13 +110,12 @@ config.json 示例:
 ### HTTP 推送配置
 
 以飞书为例,获取飞书机器人的 webhook 地址可参考[飞书开发文档](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
-在 `config.json` 中填写 填写飞书机器人的 Webhook 地址即可，例如：
+在 `config.yml` 中填写飞书机器人的 Webhook 地址即可，例如：
 
-```json
-{
-  "type": "HTTP",
-  "url": "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
-}
+```yaml
+notifications:
+  - type: "HTTP"
+    url: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
 ```
 
 这样，当有余票时，程序会通过飞书机器人发送通知。
