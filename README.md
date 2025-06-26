@@ -95,6 +95,11 @@ notifications:
   - # 飞书推送
     type: "Lark"
     webhook: "" # 飞书机器人 Webhook URL
+  
+  - # Telegram推送
+    type: "Telegram"
+    botToken: "" # Telegram机器人Token
+    chatId: "" # 接收消息的Chat ID
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
@@ -105,7 +110,7 @@ delay: 5
 
 ## 推送通知
 
-目前支持飞书推送通知，通过飞书机器人的 Webhook 接口发送消息。
+目前支持飞书推送和Telegram推送通知。
 
 ### 飞书推送配置
 
@@ -118,7 +123,27 @@ notifications:
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
 ```
 
-这样，当有余票时，程序会通过飞书机器人发送通知。
+### Telegram推送配置
+
+使用Telegram推送需要先创建一个Telegram机器人并获取相关信息：
+
+1. 在Telegram中找到 [@BotFather](https://t.me/BotFather) 并发送 `/newbot` 创建新机器人
+2. 按照提示设置机器人名称和用户名，获取机器人Token
+3. 将机器人添加到您的聊天中，或直接与机器人私聊
+4. 获取Chat ID：
+   - 发送消息给机器人后，访问 `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+   - 在返回的JSON中找到 `chat.id` 字段
+
+在 `config.yml` 中配置Telegram推送：
+
+```yaml
+notifications:
+  - type: "Telegram"
+    botToken: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz" # 机器人Token
+    chatId: "123456789" # Chat ID（可以是个人ID或群组ID）
+```
+
+这样，当有余票时，程序会通过相应的平台发送通知。
 
 ## 席别设置
 

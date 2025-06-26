@@ -22,6 +22,11 @@ notifications:
   - # 飞书推送
     type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx" # 飞书机器人 Webhook URL
+  
+  - # Telegram推送
+    type: "Telegram"
+    botToken: "xxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # Telegram机器人Token
+    chatId: "xxxxxxxxxx" # 接收消息的Chat ID
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
