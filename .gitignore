@@ -1,0 +1,6 @@
+.vscode/
+node_modules/
+dist/
+
+config.json
+log.log

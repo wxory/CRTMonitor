@@ -1,0 +1,31 @@
+{
+    "name": "cr-ticket-monitor",
+    "type": "module",
+    "version": "1.0.0",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "build-win": "npm run build-pack && npm run build-generate-blob && npm run build-inject-win",
+        "build-pack": "esbuild src/index.js --bundle --platform=node --outfile=dist/bundle.cjs",
+        "build-generate-blob": "node --experimental-sea-config sea-config.json",
+        "build-inject-win": "node -e \"require('fs').copyFileSync(process.execPath, 'dist/CRTM.exe')\" && signtool remove /s dist/CRTM.exe && npx postject dist/CRTM.exe NODE_SEA_BLOB dist/sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"
+    },
+    "author": "BobLiu",
+    "license": "GPL-2.0-only",
+    "description": "12306 余票监控程序",
+    "dependencies": {
+        "chalk": "^5.3.0",
+        "fs": "^0.0.1-security",
+        "http": "^0.0.1-security",
+        "moment": "^2.30.1",
+        "open": "^10.1.0",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "esbuild": "^0.24.0",
+        "postject": "^1.0.0-alpha.6"
+    },
+    "engines": {
+        "node": ">=20.12.0"
+    }
+}
