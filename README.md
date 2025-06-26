@@ -12,7 +12,9 @@
 
 ### 下载
 
-在项目的 GitHub Releases 页面下载对应您操作系统的最新版本。
+在项目的 Releases 页面下载对应您操作系统的最新版本。
+[CNB(推荐)](https://cnb.cool/wxory/CRTMonitor/-/releases)
+[Github](https://github.com/wxory/CRTMonitor/releases)
 
 ### 配置
 
@@ -33,7 +35,8 @@
 直接 [下载 Zip 文件](https://github.com/wxory/CRTicketMonitor/archive/refs/heads/main.zip)，或使用 Git：
 
 ```bash
-$ git clone https://github.com/wxory/CRTicketMonitor.git
+$ git clone https://github.com/wxory/CRTMonitor.git
+$ git clone https://cnb.cool/wxory/CRTMonitor.git
 ```
 
 ### 3. 安装依赖
