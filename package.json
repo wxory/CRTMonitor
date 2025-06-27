@@ -5,6 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "cli": "node src/cli.js",
+    "interactive": "node src/cli.js",
     "build-win": "npm run build-pack && npm run build-generate-blob && npm run build-inject-win",
     "build-pack": "esbuild src/index.js --bundle --platform=node --outfile=dist/bundle.cjs",
     "build-generate-blob": "node --experimental-sea-config sea-config.json",
@@ -15,12 +17,12 @@
   "description": "12306 余票监控程序",
   "dependencies": {
     "chalk": "^5.3.0",
+    "chalk-table": "^1.0.2",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
+    "inquirer": "^12.6.3",
     "js-yaml": "^4.1.0",
-    "moment": "^2.30.1",
-    "open": "^10.1.0",
-    "ws": "^8.18.0"
+    "moment": "^2.30.1"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

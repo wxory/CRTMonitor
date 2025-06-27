@@ -366,8 +366,15 @@ process.on("unhandledRejection", die);
 process.on("SIGINT", die);
 process.on("exit", clean);
 
-console.clear();
-log.title(String.raw`
+process.title = "CR Ticket Monitor";
+process.on("uncaughtException", die);
+process.on("unhandledRejection", die);
+process.on("SIGINT", die);
+process.on("exit", clean);
+
+async function main() {
+  console.clear();
+  log.title(String.raw`
            __________  ________  ___
           / ____/ __ \/_  __/  |/  /
          / /   / /_/ / / / / /|_/ /
@@ -375,8 +382,65 @@ log.title(String.raw`
         \____/_/ |_| /_/ /_/  /_/
 
 `);
-log.line();
+  log.line();
 
-checkConfig();
-watchConfigFile();
-startMonitoring();
+  // 检查命令行参数
+  const args = process.argv.slice(2);
+  if (args.includes("--monitor") || args.includes("-m")) {
+    // 直接启动监控模式
+    log.info("直接启动监控模式");
+    startMonitoringMode();
+    return;
+  }
+
+  // 检查配置文件是否存在
+  try {
+    fs.accessSync("config.yml");
+
+    // 配置文件存在，询问用户选择模式
+    log.info("检测到配置文件 config.yml");
+    log.info("请选择运行模式：");
+    log.info("1. 直接启动监控 (按 Enter 或等待 5 秒)");
+    log.info("2. 进入交互配置模式 (输入任意字符)");
+    log.line();
+
+    // 等待用户输入或超时
+    const { createInterface } = await import("readline");
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    let userChoice = false;
+    const timeout = setTimeout(() => {
+      if (!userChoice) {
+        rl.close();
+        log.info("自动选择监控模式");
+        startMonitoringMode();
+      }
+    }, 5000);
+
+    rl.on("line", () => {
+      userChoice = true;
+      clearTimeout(timeout);
+      rl.close();
+      log.info("进入交互配置模式...");
+      import("./cli.js");
+    });
+  } catch (err) {
+    // 配置文件不存在，直接启动交互模式
+    log.warn("未找到配置文件 config.yml");
+    log.info("启动交互配置模式...");
+    log.line();
+    import("./cli.js");
+  }
+}
+
+function startMonitoringMode() {
+  checkConfig();
+  watchConfigFile();
+  startMonitoring();
+}
+
+// 启动主程序
+main();
