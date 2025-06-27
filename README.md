@@ -110,7 +110,7 @@ delay: 5
 
 ## 推送通知
 
-目前支持飞书推送和 Telegram 推送通知。
+目前支持飞书推送、Telegram 推送和企业微信推送通知。
 
 ### 飞书推送配置
 
@@ -141,6 +141,22 @@ notifications:
   - type: "Telegram"
     botToken: "123456789:ABCdefGHIjklMNOpqrsTUVwxyz" # 机器人Token
     chatId: "123456789" # Chat ID（可以是个人ID或群组ID）
+```
+
+### 企业微信推送配置
+
+使用企业微信推送需要先创建企业微信群机器人：
+
+1. 在企业微信群中，点击群设置 → 群机器人 → 添加机器人
+2. 设置机器人名称和头像，获取 Webhook URL
+3. 复制完整的 Webhook URL（包含 key 参数）
+
+在 `config.yml` 中配置企业微信推送：
+
+```yaml
+notifications:
+  - type: "WechatWork"
+    webhook: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your-webhook-key"
 ```
 
 这样，当有余票时，程序会通过相应的平台发送通知。

@@ -27,6 +27,10 @@ notifications:
     type: "Telegram"
     botToken: "xxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # Telegram机器人Token
     chatId: "xxxxxxxxxx" # 接收消息的Chat ID
+  
+  - # 企业微信推送
+    type: "WechatWork"
+    webhook: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxxxx" # 企业微信机器人 Webhook URL
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15

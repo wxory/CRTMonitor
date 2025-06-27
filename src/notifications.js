@@ -102,7 +102,49 @@ class TelegramNotification extends NotificationBase {
   }
 }
 
+class WechatWorkNotification extends NotificationBase {
+  constructor(config) {
+    super(config, {
+      name: "企业微信推送",
+      description: config.webhook
+        ? config.webhook.match(/key=([^&]+)/)?.[1]?.substring(0, 8) + "..."
+        : "企业微信机器人",
+    });
+    if (!config.webhook) {
+      throw new Error(`${this.info.name} 配置不完整：缺少 webhook 地址`);
+    }
+  }
+
+  async send(msg) {
+    // 构造企业微信消息格式
+    const wechatMessage = {
+      msgtype: "text",
+      text: {
+        content: typeof msg === "string" ? msg : JSON.stringify(msg, null, 2),
+      },
+    };
+
+    const response = await fetch(this.config.webhook, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify(wechatMessage),
+    });
+
+    if (!response.ok) {
+      throw new Error(`企业微信推送 发送失败：HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (result.errcode !== 0) {
+      throw new Error(`企业微信推送 发送失败：${result.errmsg || "未知错误"}`);
+    }
+  }
+}
+
 export const Notifications = {
   Lark: LarkNotification,
   Telegram: TelegramNotification,
+  WechatWork: WechatWorkNotification,
 };

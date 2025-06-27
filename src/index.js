@@ -48,6 +48,13 @@ async function sendMsg(msg) {
           `${notification.info.name} (${notification.info.description}) 发送失败：${err}`
         );
       });
+    } else if (notification.info.name === "企业微信推送") {
+      const formattedMsg = `[车票监控]\n🕒 时间：${msg.time}\n📝 内容：${msg.content}`;
+      notification.send(formattedMsg).catch((err) => {
+        log.error(
+          `${notification.info.name} (${notification.info.description}) 发送失败：${err}`
+        );
+      });
     } else {
       notification.send(msg).catch((err) => {
         log.error(
