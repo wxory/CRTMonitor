@@ -3,8 +3,5 @@
   "output": "dist/sea-prep.blob",
   "disableExperimentalSEAWarning": true,
   "useSnapshot": false,
-  "useCodeCache": true,
-  "assets": {
-    "config.example.yml": "config.example.yml"
-  }
+  "useCodeCache": true
 }

@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node src/index.js",
     "cli": "node src/cli.js",
-    "interactive": "node src/cli.js",
     "build-win": "npm run build-pack && npm run build-generate-blob && npm run build-inject-win",
     "build-pack": "esbuild src/index.js --bundle --platform=node --outfile=dist/bundle.cjs",
     "build-generate-blob": "node --experimental-sea-config sea-config.json",
