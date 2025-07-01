@@ -21,7 +21,8 @@
     "http": "^0.0.1-security",
     "inquirer": "^12.6.3",
     "js-yaml": "^4.1.0",
-    "moment": "^2.30.1"
+    "moment": "^2.30.1",
+    "nodemailer": "^7.0.4"
   },
   "devDependencies": {
     "esbuild": "^0.24.0",

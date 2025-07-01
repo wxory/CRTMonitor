@@ -40,6 +40,16 @@ notifications:
     sound: "default" # 推送声音（可选）
     level: "active" # 推送级别（可选）
 
+  - # SMTP邮件推送
+    type: "SMTP"
+    host: "smtp.gmail.com" # SMTP服务器地址
+    port: 587 # SMTP端口号
+    user: "your-email@gmail.com" # 邮箱用户名
+    pass: "your-app-password" # 邮箱密码或应用密码
+    to: "recipient@example.com" # 收件人邮箱地址
+    from: "12306监控 <your-email@gmail.com>" # 发件人显示名称（可选）
+    secure: false # 安全连接类型（可选）
+
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
 

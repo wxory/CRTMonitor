@@ -1,4 +1,5 @@
 import { log, time, asset } from "./utils.js";
+import nodemailer from "nodemailer";
 
 class NotificationBase {
   static info = {
@@ -242,9 +243,84 @@ class BarkNotification extends NotificationBase {
   }
 }
 
+class SMTPNotification extends NotificationBase {
+  constructor(config) {
+    super(config, {
+      name: "SMTP邮件推送",
+      description: config.to
+        ? `发送至: ${config.to}`
+        : "邮件推送",
+    });
+    
+    // 验证必需配置
+    if (!config.host || !config.port || !config.user || !config.pass || !config.to) {
+      throw new Error(`${this.info.name} 配置不完整：缺少必需的邮件配置`);
+    }
+    
+    // 创建邮件传输器
+    this.transporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.secure !== undefined ? config.secure : config.port === 465,
+      auth: {
+        user: config.user,
+        pass: config.pass,
+      },
+      // 可选配置
+      ...(config.ignoreTLS && { ignoreTLS: true }),
+      ...(config.requireTLS && { requireTLS: true }),
+    });
+  }
+
+  async send(msg) {
+    // 解析消息内容
+    let subject = "🚄 12306余票监控通知";
+    let text = "";
+    let html = "";
+    
+    if (typeof msg === "string") {
+      text = msg;
+      html = `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${msg.replace(/\n/g, '<br>')}</div>`;
+    } else if (msg && typeof msg === "object") {
+      subject = msg.subject || msg.title || subject;
+      text = msg.text || msg.body || msg.content || JSON.stringify(msg, null, 2);
+      html = msg.html || `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${text.replace(/\n/g, '<br>')}</div>`;
+    }
+
+    // 构造邮件选项
+    const mailOptions = {
+      from: this.config.from || this.config.user,
+      to: this.config.to,
+      subject: subject,
+      text: text,
+      html: html,
+    };
+
+    // 添加可选配置
+    if (this.config.cc) mailOptions.cc = this.config.cc;
+    if (this.config.bcc) mailOptions.bcc = this.config.bcc;
+    if (this.config.replyTo) mailOptions.replyTo = this.config.replyTo;
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`邮件发送成功: ${info.messageId}`);
+      return info;
+    } catch (error) {
+      throw new Error(`SMTP邮件推送 发送失败：${error.message}`);
+    }
+  }
+
+  die() {
+    if (this.transporter) {
+      this.transporter.close();
+    }
+  }
+}
+
 export const Notifications = {
   Lark: LarkNotification,
   Telegram: TelegramNotification,
   WechatWork: WechatWorkNotification,
   Bark: BarkNotification,
+  SMTP: SMTPNotification,
 };

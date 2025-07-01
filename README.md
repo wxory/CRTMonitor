@@ -120,6 +120,14 @@ notifications:
     serverUrl: "https://api.day.app" # 服务器地址（可选）
     group: "火车票监控" # 推送分组（可选）
 
+  - # SMTP邮件推送
+    type: "SMTP"
+    host: "smtp.gmail.com" # SMTP服务器地址
+    port: 587 # SMTP端口号
+    user: "your-email@gmail.com" # 邮箱用户名
+    pass: "your-app-password" # 邮箱密码
+    to: "recipient@example.com" # 收件人邮箱
+
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
 
@@ -129,7 +137,7 @@ delay: 5
 
 ## 推送通知
 
-目前支持飞书推送、Telegram 推送、企业微信推送和 Bark 推送通知。
+目前支持飞书推送、Telegram 推送、企业微信推送、Bark 推送和 SMTP 邮件推送通知。
 
 ### 飞书推送配置
 
@@ -213,6 +221,76 @@ notifications:
 - `critical`：重要警告，在静音模式下也会响铃
 - `timeSensitive`：时效性通知，可在专注状态下显示通知
 - `passive`：仅将通知添加到通知列表，不会亮屏提醒
+
+### SMTP 邮件推送配置
+
+SMTP 邮件推送支持通过标准邮件服务器发送余票通知邮件。
+
+#### 配置 SMTP 邮件推送
+
+在 `config.yml` 中配置 SMTP 邮件推送：
+
+```yaml
+notifications:
+  - type: "SMTP"
+    host: "smtp.gmail.com" # 必填：SMTP服务器地址
+    port: 587 # 必填：SMTP端口号
+    user: "your-email@gmail.com" # 必填：邮箱用户名
+    pass: "your-app-password" # 必填：邮箱密码或应用密码
+    to: "recipient@example.com" # 必填：收件人邮箱地址
+    # 可选配置
+    from: "12306监控 <your-email@gmail.com>" # 发件人显示名称
+    cc: "cc@example.com" # 抄送邮箱
+    bcc: "bcc@example.com" # 密送邮箱
+    replyTo: "noreply@example.com" # 回复邮箱
+    secure: true # 是否使用SSL/TLS (465端口使用true，587端口使用false)
+```
+
+#### 常用邮箱服务器配置
+
+**Gmail:**
+```yaml
+host: "smtp.gmail.com"
+port: 587
+secure: false # 使用STARTTLS
+# 需要开启两步验证并生成应用密码
+```
+
+**QQ邮箱:**
+```yaml
+host: "smtp.qq.com"
+port: 587
+secure: false
+# 需要开启SMTP服务并使用授权码
+```
+
+**163邮箱:**
+```yaml
+host: "smtp.163.com"
+port: 587
+secure: false
+# 需要开启SMTP服务并使用授权码
+```
+
+**Outlook:**
+```yaml
+host: "smtp-mail.outlook.com"
+port: 587
+secure: false
+```
+
+#### 邮箱安全设置
+
+- **Gmail**: 需要开启两步验证，生成应用专用密码
+- **QQ邮箱**: 需要在设置中开启SMTP服务，使用授权码作为密码
+- **163邮箱**: 需要开启SMTP服务，使用授权码作为密码
+- **企业邮箱**: 根据企业邮箱服务商的要求配置
+
+#### 端口号说明
+
+- `25`: 标准SMTP端口（通常被ISP封禁）
+- `587`: STARTTLS加密端口（推荐）
+- `465`: SSL/TLS加密端口
 
 这样，当有余票时，程序会通过相应的平台发送通知。
 

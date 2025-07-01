@@ -272,6 +272,7 @@ async function queryAndConfig(isFirstTime = true) {
           { name: "Telegram推送", value: "Telegram" },
           { name: "企业微信推送", value: "WechatWork" },
           { name: "Bark推送", value: "Bark" },
+          { name: "SMTP邮件推送", value: "SMTP" },
         ],
       },
     ]);
@@ -389,6 +390,88 @@ async function queryAndConfig(isFirstTime = true) {
       }
 
       notifications.push({ type: "Bark", ...barkConfig });
+    } else if (notificationType === "SMTP") {
+      console.log(chalk.cyan("配置SMTP邮件推送:"));
+      
+      const smtpConfig = await promptWithChinese([
+        {
+          name: "host",
+          message: "SMTP服务器地址(如: smtp.gmail.com):",
+          validate: (v) => (v.trim() ? true : "SMTP服务器地址不能为空"),
+        },
+        {
+          type: "number",
+          name: "port",
+          message: "SMTP端口号(常用: 587-STARTTLS, 465-SSL, 25-无加密):",
+          default: 587,
+          validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+        },
+        {
+          name: "user",
+          message: "邮箱用户名:",
+          validate: (v) => (v.trim() ? true : "邮箱用户名不能为空"),
+        },
+        {
+          type: "password",
+          name: "pass",
+          message: "邮箱密码或应用密码:",
+          validate: (v) => (v.trim() ? true : "密码不能为空"),
+        },
+        {
+          name: "from",
+          message: "发件人显示名称(可选, 默认使用用户名):",
+        },
+        {
+          name: "to",
+          message: "收件人邮箱地址:",
+          validate: (v) => {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(v.trim()) ? true : "请输入有效的邮箱地址";
+          },
+        },
+      ]);
+      
+      // 询问是否配置高级选项
+      const { useAdvancedSMTP } = await promptWithChinese([
+        {
+          type: "confirm",
+          name: "useAdvancedSMTP",
+          message: "是否配置高级选项(安全连接、抄送等)?",
+          default: false,
+        },
+      ]);
+      
+      if (useAdvancedSMTP) {
+        const advancedSMTPConfig = await promptWithChinese([
+          {
+            type: "list",
+            name: "secure",
+            message: "安全连接类型:",
+            choices: [
+              { name: "自动检测(推荐)", value: undefined },
+              { name: "SSL/TLS (端口465)", value: true },
+              { name: "STARTTLS (端口587)", value: false },
+            ],
+            default: undefined,
+          },
+          {
+            name: "cc",
+            message: "抄送邮箱(多个用逗号分隔, 可选):",
+          },
+          {
+            name: "bcc",
+            message: "密送邮箱(多个用逗号分隔, 可选):",
+          },
+          {
+            name: "replyTo",
+            message: "回复邮箱(可选):",
+          },
+        ]);
+        
+        Object.assign(smtpConfig, advancedSMTPConfig);
+      }
+      
+      notifications.push({ type: "SMTP", ...smtpConfig });
     }
   }
 
@@ -511,6 +594,9 @@ async function editConfig() {
         } else if (notif.type === "Bark") {
           details = `设备: ${notif.deviceKey?.substring(0, 8)}...`;
           if (notif.group) details += `, 分组: ${notif.group}`;
+        } else if (notif.type === "SMTP") {
+          details = `邮箱: ${notif.to}`;
+          if (notif.host) details += ` (${notif.host})`;
         }
         console.log(
           chalk.white(
@@ -872,6 +958,7 @@ async function editNotificationConfig(config) {
             { name: "Telegram推送", value: "Telegram" },
             { name: "企业微信推送", value: "WechatWork" },
             { name: "Bark推送", value: "Bark" },
+            { name: "SMTP邮件推送", value: "SMTP" },
           ],
         },
       ]);
@@ -986,6 +1073,88 @@ async function editNotificationConfig(config) {
         }
 
         Object.assign(newNotification, barkConfig);
+      } else if (notificationType === "SMTP") {
+        console.log(chalk.cyan("配置SMTP邮件推送:"));
+        
+        const smtpConfig = await promptWithChinese([
+          {
+            name: "host",
+            message: "SMTP服务器地址(如: smtp.gmail.com):",
+            validate: (v) => (v.trim() ? true : "SMTP服务器地址不能为空"),
+          },
+          {
+            type: "number",
+            name: "port",
+            message: "SMTP端口号(常用: 587-STARTTLS, 465-SSL, 25-无加密):",
+            default: 587,
+            validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+          },
+          {
+            name: "user",
+            message: "邮箱用户名:",
+            validate: (v) => (v.trim() ? true : "邮箱用户名不能为空"),
+          },
+          {
+            type: "password",
+            name: "pass",
+            message: "邮箱密码或应用密码:",
+            validate: (v) => (v.trim() ? true : "密码不能为空"),
+          },
+          {
+            name: "from",
+            message: "发件人显示名称(可选, 默认使用用户名):",
+          },
+          {
+            name: "to",
+            message: "收件人邮箱地址:",
+            validate: (v) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              return emailRegex.test(v.trim()) ? true : "请输入有效的邮箱地址";
+            },
+          },
+        ]);
+        
+        // 询问是否配置高级选项
+        const { useAdvancedSMTP } = await promptWithChinese([
+          {
+            type: "confirm",
+            name: "useAdvancedSMTP",
+            message: "是否配置高级选项(安全连接、抄送等)?",
+            default: false,
+          },
+        ]);
+        
+        if (useAdvancedSMTP) {
+          const advancedSMTPConfig = await promptWithChinese([
+            {
+              type: "list",
+              name: "secure",
+              message: "安全连接类型:",
+              choices: [
+                { name: "自动检测(推荐)", value: undefined },
+                { name: "SSL/TLS (端口465)", value: true },
+                { name: "STARTTLS (端口587)", value: false },
+              ],
+              default: undefined,
+            },
+            {
+              name: "cc",
+              message: "抄送邮箱(多个用逗号分隔, 可选):",
+            },
+            {
+              name: "bcc",
+              message: "密送邮箱(多个用逗号分隔, 可选):",
+            },
+            {
+              name: "replyTo",
+              message: "回复邮箱(可选):",
+            },
+          ]);
+          
+          Object.assign(smtpConfig, advancedSMTPConfig);
+        }
+        
+        Object.assign(newNotification, smtpConfig);
       }
 
       if (!config.notifications) config.notifications = [];
@@ -1121,6 +1290,101 @@ async function editNotificationConfig(config) {
         }
 
         Object.assign(notif, barkEditConfig);
+      } else if (notif.type === "SMTP") {
+        console.log(chalk.cyan("当前SMTP配置:"));
+        console.log(`  服务器: ${notif.host}:${notif.port}`);
+        console.log(`  用户名: ${notif.user}`);
+        console.log(`  收件人: ${notif.to}`);
+        if (notif.from) console.log(`  发件人: ${notif.from}`);
+        if (notif.cc) console.log(`  抄送: ${notif.cc}`);
+        
+        const smtpEditConfig = await promptWithChinese([
+          {
+            name: "host",
+            message: "SMTP服务器地址:",
+            default: notif.host,
+            validate: (v) => (v.trim() ? true : "SMTP服务器地址不能为空"),
+          },
+          {
+            type: "number",
+            name: "port",
+            message: "SMTP端口号:",
+            default: notif.port,
+            validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+          },
+          {
+            name: "user",
+            message: "邮箱用户名:",
+            default: notif.user,
+            validate: (v) => (v.trim() ? true : "邮箱用户名不能为空"),
+          },
+          {
+            type: "password",
+            name: "pass",
+            message: "邮箱密码或应用密码:",
+            default: notif.pass,
+            validate: (v) => (v.trim() ? true : "密码不能为空"),
+          },
+          {
+            name: "from",
+            message: "发件人显示名称:",
+            default: notif.from || "",
+          },
+          {
+            name: "to",
+            message: "收件人邮箱地址:",
+            default: notif.to,
+            validate: (v) => {
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              return emailRegex.test(v.trim()) ? true : "请输入有效的邮箱地址";
+            },
+          },
+        ]);
+        
+        // 询问是否修改高级选项
+        const { editAdvancedSMTP } = await promptWithChinese([
+          {
+            type: "confirm",
+            name: "editAdvancedSMTP",
+            message: "是否修改高级选项?",
+            default: false,
+          },
+        ]);
+        
+        if (editAdvancedSMTP) {
+          const advancedSMTPEditConfig = await promptWithChinese([
+            {
+              type: "list",
+              name: "secure",
+              message: "安全连接类型:",
+              choices: [
+                { name: "自动检测(推荐)", value: undefined },
+                { name: "SSL/TLS (端口465)", value: true },
+                { name: "STARTTLS (端口587)", value: false },
+              ],
+              default: notif.secure,
+            },
+            {
+              name: "cc",
+              message: "抄送邮箱:",
+              default: notif.cc || "",
+            },
+            {
+              name: "bcc",
+              message: "密送邮箱:",
+              default: notif.bcc || "",
+            },
+            {
+              name: "replyTo",
+              message: "回复邮箱:",
+              default: notif.replyTo || "",
+            },
+          ]);
+          
+          Object.assign(smtpEditConfig, advancedSMTPEditConfig);
+        }
+        
+        Object.assign(notif, smtpEditConfig);
       }
       break;
 

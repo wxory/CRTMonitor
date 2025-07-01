@@ -50,6 +50,12 @@ notifications:
     deviceKey: "your-device-key"
     serverUrl: "https://api.day.app"
     group: "火车票监控"
+  - type: "SMTP"
+    host: "smtp.gmail.com"
+    port: 587
+    user: "your-email@gmail.com"
+    pass: "your-password"
+    to: "recipient@example.com"
 
 interval: 15
 delay: 5
