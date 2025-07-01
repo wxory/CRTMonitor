@@ -400,8 +400,9 @@ async function main() {
     // 配置文件存在，询问用户选择模式
     log.info("检测到配置文件 config.yml");
     log.info("请选择运行模式：");
-    log.info("1. 直接启动监控 (按 Enter 或等待 5 秒)");
-    log.info("2. 进入交互配置模式 (输入任意字符)");
+    log.info("1. 直接启动监控 (输入 1)");
+    log.info("2. 进入交互配置模式 (输入 2)");
+    log.info("或者等待 5 秒自动启动监控模式");
     log.line();
 
     // 等待用户输入或超时
@@ -420,12 +421,22 @@ async function main() {
       }
     }, 5000);
 
-    rl.on("line", () => {
+    rl.on("line", (input) => {
       userChoice = true;
       clearTimeout(timeout);
       rl.close();
-      log.info("进入交互配置模式...");
-      import("./cli.js");
+
+      const choice = input.trim();
+      if (choice === "1" || choice === "") {
+        log.info("启动监控模式...");
+        startMonitoringMode();
+      } else if (choice === "2") {
+        log.info("进入交互配置模式...");
+        import("./cli.js");
+      } else {
+        log.info("无效输入，启动监控模式...");
+        startMonitoringMode();
+      }
     });
   } catch (err) {
     // 配置文件不存在，直接启动交互模式
