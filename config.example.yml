@@ -22,15 +22,23 @@ notifications:
   - # 飞书推送
     type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx" # 飞书机器人 Webhook URL
-  
+
   - # Telegram推送
     type: "Telegram"
     botToken: "xxxxxxxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # Telegram机器人Token
     chatId: "xxxxxxxxxx" # 接收消息的Chat ID
-  
+
   - # 企业微信推送
     type: "WechatWork"
     webhook: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxxxx" # 企业微信机器人 Webhook URL
+
+  - # Bark推送
+    type: "Bark"
+    deviceKey: "xxxxxxxxxx" # Bark 设备密钥
+    serverUrl: "https://api.day.app" # 服务器地址（可选，默认官方服务器）
+    group: "火车票监控" # 推送分组（可选）
+    sound: "default" # 推送声音（可选）
+    level: "active" # 推送级别（可选）
 
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15

@@ -46,6 +46,10 @@ watch:
 notifications:
   - type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+  - type: "Bark"
+    deviceKey: "your-device-key"
+    serverUrl: "https://api.day.app"
+    group: "火车票监控"
 
 interval: 15
 delay: 5

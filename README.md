@@ -114,6 +114,12 @@ notifications:
     botToken: "" # Telegram机器人Token
     chatId: "" # 接收消息的Chat ID
 
+  - # Bark推送
+    type: "Bark"
+    deviceKey: "" # Bark 设备密钥
+    serverUrl: "https://api.day.app" # 服务器地址（可选）
+    group: "火车票监控" # 推送分组（可选）
+
 # 刷新间隔（分钟，可选，默认 15 分钟）
 interval: 15
 
@@ -123,7 +129,7 @@ delay: 5
 
 ## 推送通知
 
-目前支持飞书推送、Telegram 推送和企业微信推送通知。
+目前支持飞书推送、Telegram 推送、企业微信推送和 Bark 推送通知。
 
 ### 飞书推送配置
 
@@ -171,6 +177,42 @@ notifications:
   - type: "WechatWork"
     webhook: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your-webhook-key"
 ```
+
+### Bark 推送配置
+
+Bark 是一个 iOS 推送通知应用，支持通过 API 发送推送到 iPhone/iPad。
+
+#### 获取 Bark 设备密钥
+
+1. 在 App Store 下载并安装 [Bark](https://apps.apple.com/app/bark-customed-notifications/id1403753865) 应用
+2. 打开应用，复制显示的设备密钥（Device Key）
+3. 可选：如果你有自己的 Bark 服务器，也可以修改服务器地址
+
+#### 配置 Bark 推送
+
+在 `config.yml` 中配置 Bark 推送：
+
+```yaml
+notifications:
+  - type: "Bark"
+    deviceKey: "your-device-key" # 必填：设备密钥
+    serverUrl: "https://api.day.app" # 可选：服务器地址，默认官方服务器
+    group: "火车票监控" # 可选：推送分组
+    sound: "default" # 可选：推送声音
+    # 高级选项（可选）
+    level: "active" # 推送级别：active(默认)/critical(重要)/timeSensitive(时效)/passive(静默)
+    icon: "https://example.com/icon.png" # 自定义图标URL
+    url: "https://example.com" # 点击推送后跳转的URL
+    autoCopy: false # 是否自动复制推送内容
+    isArchive: true # 是否保存到推送历史
+```
+
+#### Bark 推送级别说明
+
+- `active`（默认）：系统会立即亮屏显示通知
+- `critical`：重要警告，在静音模式下也会响铃
+- `timeSensitive`：时效性通知，可在专注状态下显示通知
+- `passive`：仅将通知添加到通知列表，不会亮屏提醒
 
 这样，当有余票时，程序会通过相应的平台发送通知。
 

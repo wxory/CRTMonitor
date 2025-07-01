@@ -271,6 +271,7 @@ async function queryAndConfig(isFirstTime = true) {
           { name: "飞书推送", value: "Lark" },
           { name: "Telegram推送", value: "Telegram" },
           { name: "企业微信推送", value: "WechatWork" },
+          { name: "Bark推送", value: "Bark" },
         ],
       },
     ]);
@@ -314,6 +315,80 @@ async function queryAndConfig(isFirstTime = true) {
         },
       ]);
       notifications.push({ type: "WechatWork", webhook });
+    } else if (notificationType === "Bark") {
+      const barkConfig = await promptWithChinese([
+        {
+          name: "deviceKey",
+          message: "请输入Bark设备密钥(Device Key):",
+          validate: (v) => (v.trim() ? true : "设备密钥不能为空"),
+        },
+        {
+          name: "serverUrl",
+          message: "请输入Bark服务器地址(默认: https://api.day.app):",
+          default: "https://api.day.app",
+        },
+        {
+          name: "group",
+          message: "推送分组名称(可选):",
+          default: "火车票监控",
+        },
+        {
+          name: "sound",
+          message: "推送声音(可选, 默认: default):",
+          default: "default",
+        },
+      ]);
+
+      // 询问是否配置高级选项
+      const { useAdvanced } = await promptWithChinese([
+        {
+          type: "confirm",
+          name: "useAdvanced",
+          message: "是否配置高级选项(推送级别、图标等)?",
+          default: false,
+        },
+      ]);
+
+      if (useAdvanced) {
+        const advancedConfig = await promptWithChinese([
+          {
+            type: "list",
+            name: "level",
+            message: "推送级别:",
+            choices: [
+              { name: "默认(active)", value: "active" },
+              { name: "重要警告(critical)", value: "critical" },
+              { name: "时效性通知(timeSensitive)", value: "timeSensitive" },
+              { name: "仅添加到列表(passive)", value: "passive" },
+            ],
+            default: "active",
+          },
+          {
+            name: "icon",
+            message: "自定义图标URL(可选):",
+          },
+          {
+            name: "url",
+            message: "点击跳转URL(可选):",
+          },
+          {
+            type: "confirm",
+            name: "autoCopy",
+            message: "自动复制推送内容?",
+            default: false,
+          },
+          {
+            type: "confirm",
+            name: "isArchive",
+            message: "保存推送到历史记录?",
+            default: true,
+          },
+        ]);
+
+        Object.assign(barkConfig, advancedConfig);
+      }
+
+      notifications.push({ type: "Bark", ...barkConfig });
     }
   }
 
@@ -424,7 +499,24 @@ async function editConfig() {
     console.log(chalk.cyan("推送配置:"));
     if (config.notifications && config.notifications.length > 0) {
       config.notifications.forEach((notif, index) => {
-        console.log(chalk.white(`  ${index + 1}. ${notif.type}`));
+        let details = "";
+        if (notif.type === "Lark") {
+          details = notif.webhook?.match(/^https?:\/\/(.+?)\/.*$/)?.[1] || "";
+        } else if (notif.type === "Telegram") {
+          details = `Chat ID: ${notif.chatId || ""}`;
+        } else if (notif.type === "WechatWork") {
+          details =
+            notif.webhook?.match(/key=([^&]+)/)?.[1]?.substring(0, 8) + "..." ||
+            "";
+        } else if (notif.type === "Bark") {
+          details = `设备: ${notif.deviceKey?.substring(0, 8)}...`;
+          if (notif.group) details += `, 分组: ${notif.group}`;
+        }
+        console.log(
+          chalk.white(
+            `  ${index + 1}. ${notif.type}${details ? ` (${details})` : ""}`
+          )
+        );
       });
     } else {
       console.log(chalk.gray("  未配置推送"));
@@ -779,6 +871,7 @@ async function editNotificationConfig(config) {
             { name: "飞书推送", value: "Lark" },
             { name: "Telegram推送", value: "Telegram" },
             { name: "企业微信推送", value: "WechatWork" },
+            { name: "Bark推送", value: "Bark" },
           ],
         },
       ]);
@@ -819,6 +912,80 @@ async function editNotificationConfig(config) {
           },
         ]);
         newNotification.webhook = webhook;
+      } else if (notificationType === "Bark") {
+        const barkConfig = await promptWithChinese([
+          {
+            name: "deviceKey",
+            message: "请输入Bark设备密钥(Device Key):",
+            validate: (v) => (v.trim() ? true : "设备密钥不能为空"),
+          },
+          {
+            name: "serverUrl",
+            message: "请输入Bark服务器地址(默认: https://api.day.app):",
+            default: "https://api.day.app",
+          },
+          {
+            name: "group",
+            message: "推送分组名称(可选):",
+            default: "火车票监控",
+          },
+          {
+            name: "sound",
+            message: "推送声音(可选, 默认: default):",
+            default: "default",
+          },
+        ]);
+
+        // 询问是否配置高级选项
+        const { useAdvanced } = await promptWithChinese([
+          {
+            type: "confirm",
+            name: "useAdvanced",
+            message: "是否配置高级选项(推送级别、图标等)?",
+            default: false,
+          },
+        ]);
+
+        if (useAdvanced) {
+          const advancedConfig = await promptWithChinese([
+            {
+              type: "list",
+              name: "level",
+              message: "推送级别:",
+              choices: [
+                { name: "默认(active)", value: "active" },
+                { name: "重要警告(critical)", value: "critical" },
+                { name: "时效性通知(timeSensitive)", value: "timeSensitive" },
+                { name: "仅添加到列表(passive)", value: "passive" },
+              ],
+              default: "active",
+            },
+            {
+              name: "icon",
+              message: "自定义图标URL(可选):",
+            },
+            {
+              name: "url",
+              message: "点击跳转URL(可选):",
+            },
+            {
+              type: "confirm",
+              name: "autoCopy",
+              message: "自动复制推送内容?",
+              default: false,
+            },
+            {
+              type: "confirm",
+              name: "isArchive",
+              message: "保存推送到历史记录?",
+              default: true,
+            },
+          ]);
+
+          Object.assign(barkConfig, advancedConfig);
+        }
+
+        Object.assign(newNotification, barkConfig);
       }
 
       if (!config.notifications) config.notifications = [];
@@ -871,6 +1038,89 @@ async function editNotificationConfig(config) {
         ]);
         notif.botToken = botToken;
         notif.chatId = chatId;
+      } else if (notif.type === "Bark") {
+        console.log(chalk.cyan("当前Bark配置:"));
+        console.log(`  设备密钥: ${notif.deviceKey}`);
+        console.log(`  服务器: ${notif.serverUrl || "https://api.day.app"}`);
+        console.log(`  分组: ${notif.group || "未设置"}`);
+        console.log(`  声音: ${notif.sound || "default"}`);
+
+        const barkEditConfig = await promptWithChinese([
+          {
+            name: "deviceKey",
+            message: "设备密钥(Device Key):",
+            default: notif.deviceKey,
+            validate: (v) => (v.trim() ? true : "设备密钥不能为空"),
+          },
+          {
+            name: "serverUrl",
+            message: "服务器地址:",
+            default: notif.serverUrl || "https://api.day.app",
+          },
+          {
+            name: "group",
+            message: "推送分组:",
+            default: notif.group || "火车票监控",
+          },
+          {
+            name: "sound",
+            message: "推送声音:",
+            default: notif.sound || "default",
+          },
+        ]);
+
+        // 询问是否修改高级选项
+        const { editAdvanced } = await promptWithChinese([
+          {
+            type: "confirm",
+            name: "editAdvanced",
+            message: "是否修改高级选项?",
+            default: false,
+          },
+        ]);
+
+        if (editAdvanced) {
+          const advancedEditConfig = await promptWithChinese([
+            {
+              type: "list",
+              name: "level",
+              message: "推送级别:",
+              choices: [
+                { name: "默认(active)", value: "active" },
+                { name: "重要警告(critical)", value: "critical" },
+                { name: "时效性通知(timeSensitive)", value: "timeSensitive" },
+                { name: "仅添加到列表(passive)", value: "passive" },
+              ],
+              default: notif.level || "active",
+            },
+            {
+              name: "icon",
+              message: "自定义图标URL:",
+              default: notif.icon || "",
+            },
+            {
+              name: "url",
+              message: "点击跳转URL:",
+              default: notif.url || "",
+            },
+            {
+              type: "confirm",
+              name: "autoCopy",
+              message: "自动复制推送内容?",
+              default: notif.autoCopy || false,
+            },
+            {
+              type: "confirm",
+              name: "isArchive",
+              message: "保存推送到历史记录?",
+              default: notif.isArchive !== undefined ? notif.isArchive : true,
+            },
+          ]);
+
+          Object.assign(barkEditConfig, advancedEditConfig);
+        }
+
+        Object.assign(notif, barkEditConfig);
       }
       break;
 
