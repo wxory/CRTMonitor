@@ -46,6 +46,7 @@ watch:
 notifications:
   - type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/..."
+    secret: "your-secret-key" # 可选，启用签名校验时必填
   - type: "Bark"
     deviceKey: "your-device-key"
     serverUrl: "https://api.day.app"

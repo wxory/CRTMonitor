@@ -1,5 +1,6 @@
 import { log, time, asset } from "./utils.js";
 import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 class NotificationBase {
   static info = {
@@ -32,6 +33,18 @@ class LarkNotification extends NotificationBase {
     }
   }
 
+  /**
+   * 生成飞书签名校验
+   * @param {number} timestamp 时间戳（秒）
+   * @param {string} secret 密钥
+   * @returns {string} 签名字符串
+   */
+  _generateSign(timestamp, secret) {
+    const stringToSign = `${timestamp}\n${secret}`;
+    const hmac = crypto.createHmac("sha256", stringToSign);
+    return hmac.update("").digest("base64");
+  }
+
   async send(msg) {
     // 构造飞书消息格式
     const larkMessage = {
@@ -40,6 +53,15 @@ class LarkNotification extends NotificationBase {
         text: typeof msg === "string" ? msg : JSON.stringify(msg, null, 2),
       },
     };
+
+    // 如果配置了签名密钥，添加签名校验
+    if (this.config.secret) {
+      const timestamp = Math.floor(Date.now() / 1000);
+      const sign = this._generateSign(timestamp, this.config.secret);
+
+      larkMessage.timestamp = timestamp.toString();
+      larkMessage.sign = sign;
+    }
 
     const response = await fetch(this.config.webhook, {
       method: "POST",
@@ -247,16 +269,20 @@ class SMTPNotification extends NotificationBase {
   constructor(config) {
     super(config, {
       name: "SMTP邮件推送",
-      description: config.to
-        ? `发送至: ${config.to}`
-        : "邮件推送",
+      description: config.to ? `发送至: ${config.to}` : "邮件推送",
     });
-    
+
     // 验证必需配置
-    if (!config.host || !config.port || !config.user || !config.pass || !config.to) {
+    if (
+      !config.host ||
+      !config.port ||
+      !config.user ||
+      !config.pass ||
+      !config.to
+    ) {
       throw new Error(`${this.info.name} 配置不完整：缺少必需的邮件配置`);
     }
-    
+
     // 创建邮件传输器
     this.transporter = nodemailer.createTransport({
       host: config.host,
@@ -277,14 +303,23 @@ class SMTPNotification extends NotificationBase {
     let subject = "🚄 12306余票监控通知";
     let text = "";
     let html = "";
-    
+
     if (typeof msg === "string") {
       text = msg;
-      html = `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${msg.replace(/\n/g, '<br>')}</div>`;
+      html = `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${msg.replace(
+        /\n/g,
+        "<br>"
+      )}</div>`;
     } else if (msg && typeof msg === "object") {
       subject = msg.subject || msg.title || subject;
-      text = msg.text || msg.body || msg.content || JSON.stringify(msg, null, 2);
-      html = msg.html || `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${text.replace(/\n/g, '<br>')}</div>`;
+      text =
+        msg.text || msg.body || msg.content || JSON.stringify(msg, null, 2);
+      html =
+        msg.html ||
+        `<div style="font-family: Arial, sans-serif; line-height: 1.6;">${text.replace(
+          /\n/g,
+          "<br>"
+        )}</div>`;
     }
 
     // 构造邮件选项

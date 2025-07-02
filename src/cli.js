@@ -288,7 +288,33 @@ async function queryAndConfig(isFirstTime = true) {
               : "URL格式错误，请输入正确的飞书机器人URL",
         },
       ]);
-      notifications.push({ type: "Lark", webhook });
+
+      const { needSecret } = await promptWithChinese([
+        {
+          type: "confirm",
+          name: "needSecret",
+          message: "是否启用签名校验？（建议启用以提高安全性）",
+          default: false,
+        },
+      ]);
+
+      let secret = "";
+      if (needSecret) {
+        const secretInput = await promptWithChinese([
+          {
+            name: "secret",
+            message: "请输入签名密钥（从飞书机器人安全设置中获取）:",
+            validate: (v) => (v.trim() ? true : "密钥不能为空"),
+          },
+        ]);
+        secret = secretInput.secret;
+      }
+
+      const larkConfig = { type: "Lark", webhook };
+      if (secret) {
+        larkConfig.secret = secret;
+      }
+      notifications.push(larkConfig);
     } else if (notificationType === "Telegram") {
       const { botToken, chatId } = await promptWithChinese([
         {
@@ -392,7 +418,7 @@ async function queryAndConfig(isFirstTime = true) {
       notifications.push({ type: "Bark", ...barkConfig });
     } else if (notificationType === "SMTP") {
       console.log(chalk.cyan("配置SMTP邮件推送:"));
-      
+
       const smtpConfig = await promptWithChinese([
         {
           name: "host",
@@ -404,7 +430,8 @@ async function queryAndConfig(isFirstTime = true) {
           name: "port",
           message: "SMTP端口号(常用: 587-STARTTLS, 465-SSL, 25-无加密):",
           default: 587,
-          validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+          validate: (v) =>
+            v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间",
         },
         {
           name: "user",
@@ -430,7 +457,7 @@ async function queryAndConfig(isFirstTime = true) {
           },
         },
       ]);
-      
+
       // 询问是否配置高级选项
       const { useAdvancedSMTP } = await promptWithChinese([
         {
@@ -440,7 +467,7 @@ async function queryAndConfig(isFirstTime = true) {
           default: false,
         },
       ]);
-      
+
       if (useAdvancedSMTP) {
         const advancedSMTPConfig = await promptWithChinese([
           {
@@ -467,10 +494,10 @@ async function queryAndConfig(isFirstTime = true) {
             message: "回复邮箱(可选):",
           },
         ]);
-        
+
         Object.assign(smtpConfig, advancedSMTPConfig);
       }
-      
+
       notifications.push({ type: "SMTP", ...smtpConfig });
     }
   }
@@ -493,7 +520,7 @@ async function queryAndConfig(isFirstTime = true) {
     },
   ]);
 
-  // 8. 生成并保存配置
+  // 8. 生成配置
   const config = {
     watch: [
       {
@@ -508,12 +535,16 @@ async function queryAndConfig(isFirstTime = true) {
     delay,
   };
 
-  fs.writeFileSync(
-    "config.yml",
-    yaml.dump(config, { quotingType: '"', forceQuotes: false }),
-    "utf-8"
-  );
-  console.log(chalk.green("\n✅ 配置已保存到 config.yml"));
+  // 只有首次配置时才直接保存文件
+  if (isFirstTime) {
+    fs.writeFileSync(
+      "config.yml",
+      yaml.dump(config, { quotingType: '"', forceQuotes: false }),
+      "utf-8"
+    );
+    console.log(chalk.green("\n✅ 配置已保存到 config.yml"));
+  }
+
   console.log(chalk.blue("\n📋 配置摘要:"));
   console.log(chalk.white(`📍 监控路线: ${from} → ${to}`));
   console.log(chalk.white(`📅 出行日期: ${date}`));
@@ -525,34 +556,36 @@ async function queryAndConfig(isFirstTime = true) {
   );
   console.log(chalk.white(`⏰ 查询间隔: ${interval} 分钟`));
 
-  // 9. 询问是否立即开始监控
-  const { startNow } = await promptWithChinese([
-    {
-      type: "confirm",
-      name: "startNow",
-      message: "是否立即开始监控?",
-      default: true,
-    },
-  ]);
-
-  if (startNow) {
-    console.log(chalk.green("\n正在启动监控程序...\n"));
-    const { spawn } = await import("child_process");
-    spawn("node", ["src/index.js"], { stdio: "inherit", cwd: process.cwd() });
-  } else if (isFirstTime) {
-    // 如果是首次配置且选择不立即启动，询问是否返回主菜单
-    const { backToMenu } = await promptWithChinese([
+  // 9. 只有在首次配置时才询问是否立即开始监控
+  if (isFirstTime) {
+    const { startNow } = await promptWithChinese([
       {
         type: "confirm",
-        name: "backToMenu",
-        message: "是否返回主菜单?",
+        name: "startNow",
+        message: "是否立即开始监控?",
         default: true,
       },
     ]);
 
-    if (backToMenu) {
-      console.log(chalk.cyan("\n返回主菜单..."));
-      return config;
+    if (startNow) {
+      console.log(chalk.green("\n正在启动监控程序...\n"));
+      const { spawn } = await import("child_process");
+      spawn("node", ["src/index.js"], { stdio: "inherit", cwd: process.cwd() });
+    } else {
+      // 如果是首次配置且选择不立即启动，询问是否返回主菜单
+      const { backToMenu } = await promptWithChinese([
+        {
+          type: "confirm",
+          name: "backToMenu",
+          message: "是否返回主菜单?",
+          default: true,
+        },
+      ]);
+
+      if (backToMenu) {
+        console.log(chalk.cyan("\n返回主菜单..."));
+        return config;
+      }
     }
   }
 
@@ -585,6 +618,9 @@ async function editConfig() {
         let details = "";
         if (notif.type === "Lark") {
           details = notif.webhook?.match(/^https?:\/\/(.+?)\/.*$/)?.[1] || "";
+          if (notif.secret) {
+            details += " (已启用签名校验)";
+          }
         } else if (notif.type === "Telegram") {
           details = `Chat ID: ${notif.chatId || ""}`;
         } else if (notif.type === "WechatWork") {
@@ -666,9 +702,79 @@ async function addMonitorTask(config) {
   console.log(chalk.cyan("\n➕ 添加新的监控任务"));
   const newTask = await queryAndConfig(false);
   if (newTask && newTask.watch && newTask.watch[0]) {
+    // 添加监控任务
     config.watch.push(newTask.watch[0]);
+
+    // 合并推送配置（如果新任务包含推送配置）
+    if (newTask.notifications && newTask.notifications.length > 0) {
+      if (!config.notifications) {
+        config.notifications = [];
+      }
+
+      // 检查是否有重复的推送配置，避免重复添加
+      for (const newNotif of newTask.notifications) {
+        const isDuplicate = config.notifications.some((existingNotif) => {
+          if (existingNotif.type !== newNotif.type) return false;
+
+          // 根据不同类型检查是否重复
+          switch (newNotif.type) {
+            case "Lark":
+            case "WechatWork":
+              return existingNotif.webhook === newNotif.webhook;
+            case "Telegram":
+              return (
+                existingNotif.botToken === newNotif.botToken &&
+                existingNotif.chatId === newNotif.chatId
+              );
+            case "Bark":
+              return existingNotif.deviceKey === newNotif.deviceKey;
+            case "SMTP":
+              return (
+                existingNotif.host === newNotif.host &&
+                existingNotif.user === newNotif.user &&
+                existingNotif.to === newNotif.to
+              );
+            default:
+              return false;
+          }
+        });
+
+        if (!isDuplicate) {
+          config.notifications.push(newNotif);
+        } else {
+          console.log(
+            chalk.yellow(`⚠️  推送配置 ${newNotif.type} 已存在，跳过添加`)
+          );
+        }
+      }
+    }
+
+    // 更新查询参数（如果新任务设置了新的参数）
+    if (newTask.interval !== undefined) {
+      config.interval = newTask.interval;
+    }
+    if (newTask.delay !== undefined) {
+      config.delay = newTask.delay;
+    }
+
     fs.writeFileSync("config.yml", yaml.dump(config), "utf-8");
     console.log(chalk.green("✅ 监控任务已添加!"));
+
+    // 显示添加的内容摘要
+    console.log(chalk.blue("\n📋 添加的内容:"));
+    console.log(
+      chalk.white(
+        `📍 监控路线: ${newTask.watch[0].from} → ${newTask.watch[0].to}`
+      )
+    );
+    console.log(chalk.white(`📅 出行日期: ${newTask.watch[0].date}`));
+    if (newTask.notifications && newTask.notifications.length > 0) {
+      console.log(
+        chalk.white(
+          `📲 推送配置: ${newTask.notifications.map((n) => n.type).join(", ")}`
+        )
+      );
+    }
   }
 
   // 询问是否继续编辑
@@ -974,6 +1080,26 @@ async function editNotificationConfig(config) {
           },
         ]);
         newNotification.webhook = webhook;
+
+        const { needSecret } = await promptWithChinese([
+          {
+            type: "confirm",
+            name: "needSecret",
+            message: "是否启用签名校验？（建议启用以提高安全性）",
+            default: false,
+          },
+        ]);
+
+        if (needSecret) {
+          const { secret } = await promptWithChinese([
+            {
+              name: "secret",
+              message: "请输入签名密钥（从飞书机器人安全设置中获取）:",
+              validate: (v) => (v.trim() ? true : "密钥不能为空"),
+            },
+          ]);
+          newNotification.secret = secret;
+        }
       } else if (notificationType === "Telegram") {
         const { botToken, chatId } = await promptWithChinese([
           {
@@ -1075,7 +1201,7 @@ async function editNotificationConfig(config) {
         Object.assign(newNotification, barkConfig);
       } else if (notificationType === "SMTP") {
         console.log(chalk.cyan("配置SMTP邮件推送:"));
-        
+
         const smtpConfig = await promptWithChinese([
           {
             name: "host",
@@ -1087,7 +1213,8 @@ async function editNotificationConfig(config) {
             name: "port",
             message: "SMTP端口号(常用: 587-STARTTLS, 465-SSL, 25-无加密):",
             default: 587,
-            validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+            validate: (v) =>
+              v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间",
           },
           {
             name: "user",
@@ -1113,7 +1240,7 @@ async function editNotificationConfig(config) {
             },
           },
         ]);
-        
+
         // 询问是否配置高级选项
         const { useAdvancedSMTP } = await promptWithChinese([
           {
@@ -1123,7 +1250,7 @@ async function editNotificationConfig(config) {
             default: false,
           },
         ]);
-        
+
         if (useAdvancedSMTP) {
           const advancedSMTPConfig = await promptWithChinese([
             {
@@ -1150,10 +1277,10 @@ async function editNotificationConfig(config) {
               message: "回复邮箱(可选):",
             },
           ]);
-          
+
           Object.assign(smtpConfig, advancedSMTPConfig);
         }
-        
+
         Object.assign(newNotification, smtpConfig);
       }
 
@@ -1180,7 +1307,54 @@ async function editNotificationConfig(config) {
       ]);
 
       const notif = config.notifications[notifIndex];
-      if (notif.type === "Lark" || notif.type === "WechatWork") {
+      if (notif.type === "Lark") {
+        const { webhook } = await promptWithChinese([
+          {
+            name: "webhook",
+            message: "请输入新的Webhook URL:",
+            default: notif.webhook,
+            validate: (v) => (v.trim() ? true : "不能为空"),
+          },
+        ]);
+        notif.webhook = webhook;
+
+        // 询问签名校验配置
+        const currentHasSecret = notif.secret ? true : false;
+        const { secretAction } = await promptWithChinese([
+          {
+            type: "list",
+            name: "secretAction",
+            message: "签名校验配置:",
+            choices: [
+              {
+                name: currentHasSecret ? "保持当前签名密钥" : "不启用签名校验",
+                value: "keep",
+              },
+              {
+                name: currentHasSecret ? "修改签名密钥" : "启用签名校验",
+                value: "edit",
+              },
+              ...(currentHasSecret
+                ? [{ name: "删除签名密钥", value: "remove" }]
+                : []),
+            ],
+          },
+        ]);
+
+        if (secretAction === "edit") {
+          const { secret } = await promptWithChinese([
+            {
+              name: "secret",
+              message: "请输入签名密钥:",
+              default: notif.secret || "",
+              validate: (v) => (v.trim() ? true : "密钥不能为空"),
+            },
+          ]);
+          notif.secret = secret;
+        } else if (secretAction === "remove") {
+          delete notif.secret;
+        }
+      } else if (notif.type === "WechatWork") {
         const { webhook } = await promptWithChinese([
           {
             name: "webhook",
@@ -1297,7 +1471,7 @@ async function editNotificationConfig(config) {
         console.log(`  收件人: ${notif.to}`);
         if (notif.from) console.log(`  发件人: ${notif.from}`);
         if (notif.cc) console.log(`  抄送: ${notif.cc}`);
-        
+
         const smtpEditConfig = await promptWithChinese([
           {
             name: "host",
@@ -1310,7 +1484,8 @@ async function editNotificationConfig(config) {
             name: "port",
             message: "SMTP端口号:",
             default: notif.port,
-            validate: (v) => (v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间"),
+            validate: (v) =>
+              v > 0 && v <= 65535 ? true : "端口号必须在1-65535之间",
           },
           {
             name: "user",
@@ -1340,7 +1515,7 @@ async function editNotificationConfig(config) {
             },
           },
         ]);
-        
+
         // 询问是否修改高级选项
         const { editAdvancedSMTP } = await promptWithChinese([
           {
@@ -1350,7 +1525,7 @@ async function editNotificationConfig(config) {
             default: false,
           },
         ]);
-        
+
         if (editAdvancedSMTP) {
           const advancedSMTPEditConfig = await promptWithChinese([
             {
@@ -1380,10 +1555,10 @@ async function editNotificationConfig(config) {
               default: notif.replyTo || "",
             },
           ]);
-          
+
           Object.assign(smtpEditConfig, advancedSMTPEditConfig);
         }
-        
+
         Object.assign(notif, smtpEditConfig);
       }
       break;

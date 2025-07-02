@@ -142,6 +142,9 @@ delay: 5
 ### 飞书推送配置
 
 获取飞书机器人的 webhook 地址可参考[飞书开发文档](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
+
+#### 基础配置
+
 在 `config.yml` 中填写飞书机器人的 Webhook 地址即可，例如：
 
 ```yaml
@@ -149,6 +152,28 @@ notifications:
   - type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
 ```
+
+#### 签名校验配置（推荐）
+
+为了提高安全性，建议启用飞书机器人的签名校验功能：
+
+1. 在飞书群组中，进入自定义机器人的配置页面
+2. 在安全设置中选择"签名校验"
+3. 复制生成的密钥
+4. 在配置文件中添加 `secret` 字段：
+
+```yaml
+notifications:
+  - type: "Lark"
+    webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-url"
+    secret: "your-secret-key" # 签名密钥（可选，启用签名校验时必填）
+```
+
+**注意事项：**
+
+- 签名密钥用于验证消息来源的可信性，防止恶意调用
+- 启用签名校验后，所有请求都需要通过签名验证
+- 签名算法使用 HmacSHA256 + Base64 编码
 
 ### Telegram 推送配置
 
@@ -249,6 +274,7 @@ notifications:
 #### 常用邮箱服务器配置
 
 **Gmail:**
+
 ```yaml
 host: "smtp.gmail.com"
 port: 587
@@ -256,7 +282,8 @@ secure: false # 使用STARTTLS
 # 需要开启两步验证并生成应用密码
 ```
 
-**QQ邮箱:**
+**QQ 邮箱:**
+
 ```yaml
 host: "smtp.qq.com"
 port: 587
@@ -264,7 +291,8 @@ secure: false
 # 需要开启SMTP服务并使用授权码
 ```
 
-**163邮箱:**
+**163 邮箱:**
+
 ```yaml
 host: "smtp.163.com"
 port: 587
@@ -273,6 +301,7 @@ secure: false
 ```
 
 **Outlook:**
+
 ```yaml
 host: "smtp-mail.outlook.com"
 port: 587
@@ -282,15 +311,15 @@ secure: false
 #### 邮箱安全设置
 
 - **Gmail**: 需要开启两步验证，生成应用专用密码
-- **QQ邮箱**: 需要在设置中开启SMTP服务，使用授权码作为密码
-- **163邮箱**: 需要开启SMTP服务，使用授权码作为密码
+- **QQ 邮箱**: 需要在设置中开启 SMTP 服务，使用授权码作为密码
+- **163 邮箱**: 需要开启 SMTP 服务，使用授权码作为密码
 - **企业邮箱**: 根据企业邮箱服务商的要求配置
 
 #### 端口号说明
 
-- `25`: 标准SMTP端口（通常被ISP封禁）
-- `587`: STARTTLS加密端口（推荐）
-- `465`: SSL/TLS加密端口
+- `25`: 标准 SMTP 端口（通常被 ISP 封禁）
+- `587`: STARTTLS 加密端口（推荐）
+- `465`: SSL/TLS 加密端口
 
 这样，当有余票时，程序会通过相应的平台发送通知。
 

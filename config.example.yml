@@ -22,6 +22,7 @@ notifications:
   - # 飞书推送
     type: "Lark"
     webhook: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxxxx" # 飞书机器人 Webhook URL
+    secret: "xxxxxxxxxx" # 签名密钥（可选，启用签名校验时填写）
 
   - # Telegram推送
     type: "Telegram"
