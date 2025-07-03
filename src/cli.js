@@ -206,36 +206,37 @@ async function queryAndConfig(isFirstTime = true) {
     return;
   }
 
-  // 5. 为每个选中的车次配置详细参数
+  // 5. 为所有选中的车次统一配置参数
+  console.log(chalk.cyan(`\n为 ${selectedTrains.length} 个车次配置参数:`));
+
+  const { seatTypes, checkRoundTrip } = await promptWithChinese([
+    {
+      type: "checkbox",
+      name: "seatTypes",
+      message: "选择要监控的席别(不选择则监控所有席别):",
+      choices: [
+        { name: "商务座", value: "商务座" },
+        { name: "特等座", value: "特等座" },
+        { name: "一等座", value: "一等座" },
+        { name: "二等座", value: "二等座" },
+        { name: "软卧", value: "软卧" },
+        { name: "硬卧", value: "硬卧" },
+        { name: "软座", value: "软座" },
+        { name: "硬座", value: "硬座" },
+        { name: "无座", value: "无座" },
+      ],
+    },
+    {
+      type: "confirm",
+      name: "checkRoundTrip",
+      message: "是否查询全程票情况?",
+      default: false,
+    },
+  ]);
+
+  // 为每个选中的车次应用相同的配置
   const configuredTrains = [];
   for (const train of selectedTrains) {
-    console.log(chalk.cyan(`\n配置车次 ${train.station_train_code}:`));
-
-    const { seatTypes, checkRoundTrip } = await promptWithChinese([
-      {
-        type: "checkbox",
-        name: "seatTypes",
-        message: "选择要监控的席别(不选择则监控所有席别):",
-        choices: [
-          { name: "商务座", value: "商务座" },
-          { name: "特等座", value: "特等座" },
-          { name: "一等座", value: "一等座" },
-          { name: "二等座", value: "二等座" },
-          { name: "软卧", value: "软卧" },
-          { name: "硬卧", value: "硬卧" },
-          { name: "软座", value: "软座" },
-          { name: "硬座", value: "硬座" },
-          { name: "无座", value: "无座" },
-        ],
-      },
-      {
-        type: "confirm",
-        name: "checkRoundTrip",
-        message: "是否查询全程票情况?",
-        default: false,
-      },
-    ]);
-
     const trainConfig = {
       code: train.station_train_code,
       from: await ChinaRailway.getStationName(train.from_station_telecode),
@@ -549,6 +550,16 @@ async function queryAndConfig(isFirstTime = true) {
   console.log(chalk.white(`📍 监控路线: ${from} → ${to}`));
   console.log(chalk.white(`📅 出行日期: ${date}`));
   console.log(chalk.white(`🚄 监控车次: ${configuredTrains.length} 个`));
+
+  // 显示车次列表和席别信息
+  configuredTrains.forEach((train, index) => {
+    const seatInfo =
+      train.seatCategory && train.seatCategory.length > 0
+        ? `(${train.seatCategory.join(", ")})`
+        : "(所有席别)";
+    console.log(chalk.gray(`    ${index + 1}. ${train.code} ${seatInfo}`));
+  });
+
   console.log(
     chalk.white(
       `📲 推送方式: ${notifications.length ? notifications[0].type : "无"}`
@@ -768,6 +779,21 @@ async function addMonitorTask(config) {
       )
     );
     console.log(chalk.white(`📅 出行日期: ${newTask.watch[0].date}`));
+    console.log(
+      chalk.white(`🚄 监控车次: ${newTask.watch[0].trains?.length || 0} 个`)
+    );
+
+    // 显示车次和席别信息
+    if (newTask.watch[0].trains) {
+      newTask.watch[0].trains.forEach((train, index) => {
+        const seatInfo =
+          train.seatCategory && train.seatCategory.length > 0
+            ? `(${train.seatCategory.join(", ")})`
+            : "(所有席别)";
+        console.log(chalk.gray(`    ${index + 1}. ${train.code} ${seatInfo}`));
+      });
+    }
+
     if (newTask.notifications && newTask.notifications.length > 0) {
       console.log(
         chalk.white(
@@ -893,66 +919,115 @@ async function editMonitorTask(config) {
         return;
       }
 
-      for (const train of task.trains) {
+      // 询问配置方式
+      const { configMode } = await promptWithChinese([
+        {
+          type: "list",
+          name: "configMode",
+          message: "选择席别配置方式:",
+          choices: [
+            { name: "📦 统一配置所有车次", value: "unified" },
+            { name: "🔧 单独配置每个车次", value: "individual" },
+          ],
+        },
+      ]);
+
+      if (configMode === "unified") {
+        // 统一配置模式
+        console.log(
+          chalk.cyan(`\n为 ${task.trains.length} 个车次统一配置席别:`)
+        );
+
         const { seatTypes } = await promptWithChinese([
           {
             type: "checkbox",
             name: "seatTypes",
-            message: `配置车次 ${train.code} 的席别:`,
+            message: "选择要监控的席别(不选择则监控所有席别):",
             choices: [
-              {
-                name: "商务座",
-                value: "商务座",
-                checked: train.seatCategory?.includes("商务座"),
-              },
-              {
-                name: "特等座",
-                value: "特等座",
-                checked: train.seatCategory?.includes("特等座"),
-              },
-              {
-                name: "一等座",
-                value: "一等座",
-                checked: train.seatCategory?.includes("一等座"),
-              },
-              {
-                name: "二等座",
-                value: "二等座",
-                checked: train.seatCategory?.includes("二等座"),
-              },
-              {
-                name: "软卧",
-                value: "软卧",
-                checked: train.seatCategory?.includes("软卧"),
-              },
-              {
-                name: "硬卧",
-                value: "硬卧",
-                checked: train.seatCategory?.includes("硬卧"),
-              },
-              {
-                name: "软座",
-                value: "软座",
-                checked: train.seatCategory?.includes("软座"),
-              },
-              {
-                name: "硬座",
-                value: "硬座",
-                checked: train.seatCategory?.includes("硬座"),
-              },
-              {
-                name: "无座",
-                value: "无座",
-                checked: train.seatCategory?.includes("无座"),
-              },
+              { name: "商务座", value: "商务座" },
+              { name: "特等座", value: "特等座" },
+              { name: "一等座", value: "一等座" },
+              { name: "二等座", value: "二等座" },
+              { name: "软卧", value: "软卧" },
+              { name: "硬卧", value: "硬卧" },
+              { name: "软座", value: "软座" },
+              { name: "硬座", value: "硬座" },
+              { name: "无座", value: "无座" },
             ],
           },
         ]);
 
-        if (seatTypes.length > 0) {
-          train.seatCategory = seatTypes;
-        } else {
-          delete train.seatCategory;
+        // 应用到所有车次
+        for (const train of task.trains) {
+          if (seatTypes.length > 0) {
+            train.seatCategory = seatTypes;
+          } else {
+            delete train.seatCategory;
+          }
+        }
+      } else {
+        // 单独配置模式
+        for (const train of task.trains) {
+          const { seatTypes } = await promptWithChinese([
+            {
+              type: "checkbox",
+              name: "seatTypes",
+              message: `配置车次 ${train.code} 的席别:`,
+              choices: [
+                {
+                  name: "商务座",
+                  value: "商务座",
+                  checked: train.seatCategory?.includes("商务座"),
+                },
+                {
+                  name: "特等座",
+                  value: "特等座",
+                  checked: train.seatCategory?.includes("特等座"),
+                },
+                {
+                  name: "一等座",
+                  value: "一等座",
+                  checked: train.seatCategory?.includes("一等座"),
+                },
+                {
+                  name: "二等座",
+                  value: "二等座",
+                  checked: train.seatCategory?.includes("二等座"),
+                },
+                {
+                  name: "软卧",
+                  value: "软卧",
+                  checked: train.seatCategory?.includes("软卧"),
+                },
+                {
+                  name: "硬卧",
+                  value: "硬卧",
+                  checked: train.seatCategory?.includes("硬卧"),
+                },
+                {
+                  name: "软座",
+                  value: "软座",
+                  checked: train.seatCategory?.includes("软座"),
+                },
+                {
+                  name: "硬座",
+                  value: "硬座",
+                  checked: train.seatCategory?.includes("硬座"),
+                },
+                {
+                  name: "无座",
+                  value: "无座",
+                  checked: train.seatCategory?.includes("无座"),
+                },
+              ],
+            },
+          ]);
+
+          if (seatTypes.length > 0) {
+            train.seatCategory = seatTypes;
+          } else {
+            delete train.seatCategory;
+          }
         }
       }
       break;
